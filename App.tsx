@@ -1,13 +1,13 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { LayoutType, ImageItem, ProcessingOptions, ResultStats, ImageAnnotation } from './types';
-import { Language, translations } from './translations';
-import Dropzone from './components/Dropzone';
-import Sidebar from './components/Sidebar';
-import ImageList from './components/ImageList';
-import MergedPreview from './components/MergedPreview';
-import EditorModal from './components/EditorModal';
-import { processImages } from './services/imageProcessor';
+import { LayoutType, ImageItem, ProcessingOptions, ResultStats, ImageAnnotation } from './types.ts';
+import { Language, translations } from './translations.ts';
+import Dropzone from './components/Dropzone.tsx';
+import Sidebar from './components/Sidebar.tsx';
+import ImageList from './components/ImageList.tsx';
+import MergedPreview from './components/MergedPreview.tsx';
+import EditorModal from './components/EditorModal.tsx';
+import { processImages } from './services/imageProcessor.ts';
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>(() => {

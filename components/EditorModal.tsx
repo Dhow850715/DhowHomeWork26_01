@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ImageItem, ImageAnnotation, EditType } from '../types';
+import { ImageItem, ImageAnnotation, EditType } from '../types.ts';
 
 interface EditorModalProps {
   image: ImageItem;

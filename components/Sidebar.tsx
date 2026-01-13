@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutType, ProcessingOptions, ResultStats } from '../types';
+import { LayoutType, ProcessingOptions, ResultStats } from '../types.ts';
 
 interface SidebarProps {
   options: ProcessingOptions;

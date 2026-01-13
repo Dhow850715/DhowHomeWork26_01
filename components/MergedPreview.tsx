@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ResultStats, ProcessingOptions } from '../types';
+import { ResultStats, ProcessingOptions } from '../types.ts';
 
 interface MergedPreviewProps {
   result: { url: string; stats: ResultStats } | null;
