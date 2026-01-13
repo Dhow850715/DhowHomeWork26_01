@@ -4,18 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SnapStitch - Pro Image Merger</title>
-  
-  <!-- 
-    這行非常重要：確保在 GitHub Pages 子目錄中，
-    所有的相對路徑（如 index.tsx）都會正確指向目前的資料夾，而非網域根目錄。
-  -->
-  <base href="./">
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -31,13 +23,7 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .glass-morphism {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
   </style>
-
   <script type="importmap">
 {
   "imports": {
@@ -55,39 +41,51 @@
   <div id="root">
     <div style="display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
       <div class="loader"></div>
-      <p style="color:#94a3b8; font-size:14px; letter-spacing: 0.05em;">SnapStitch 正在準備中...</p>
+      <p id="status-text" style="color:#94a3b8; font-size:14px; letter-spacing: 0.05em;">SnapStitch 正在準備中...</p>
     </div>
   </div>
 
-  <!-- 
-    esm.sh/run 標準用法：
-    1. 定義一個 type="module" 的 script 指向入口點。
-    2. 載入 esm.sh/run 腳本，它會自動攔截並編譯 .tsx 檔案。
-  -->
-  <script type="module" src="index.tsx"></script>
-  <script type="module" src="https://esm.sh/run"></script>
+  <script type="module">
+    // 1. 動態計算目前的絕對路徑 (考慮到 GitHub Pages 的子目錄)
+    const getFullUrl = (relPath) => {
+      const url = new URL(relPath, window.location.href);
+      return url.href;
+    };
 
-  <script>
-    // 錯誤捕獲與友善提示
-    window.addEventListener('error', (e) => {
-      if (e.target && e.target.tagName === 'SCRIPT') {
-        console.error('檔案載入失敗:', e.target.src);
-        if (e.target.src.includes('index.tsx')) {
-          const root = document.getElementById('root');
-          root.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #f87171; max-width: 500px; margin: 0 auto;">
-              <h1 style="font-size: 24px; margin-bottom: 16px; color: white;">啟動失敗</h1>
-              <p style="color: #94a3b8; line-height: 1.6;">找不到入口檔案 index.tsx。這通常是因為 GitHub Pages 的快取或是路徑設定問題。</p>
-              <div style="background: #1e293b; padding: 10px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 12px; color: #f1f5f9; word-break: break-all;">
-                嘗試存取: ${e.target.src}
-              </div>
-              <button onclick="location.reload(true)" style="background: #3b82f6; color: white; padding: 10px 24px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;">強制重新整理</button>
-              <p style="font-size: 12px; color: #64748b; margin-top: 20px;">提示：請確保 index.tsx 檔案位於 GitHub 專案的根目錄中。</p>
-            </div>
-          `;
-        }
+    const entryPoint = getFullUrl('./index.tsx');
+    console.log('入口點定位:', entryPoint);
+
+    // 2. 建立並插入 esm.sh/run 腳本
+    // 我們直接在 URL 參數中使用 main=... 來強制指定路徑
+    const runScript = document.createElement('script');
+    runScript.type = 'module';
+    runScript.src = `https://esm.sh/run?main=${entryPoint}`;
+    
+    runScript.onerror = () => {
+      document.getElementById('root').innerHTML = `
+        <div style="padding: 40px; text-align: center; color: white;">
+          <h1 style="color: #f87171;">載入引擎失敗</h1>
+          <p style="color: #94a3b8; margin-top: 10px;">無法連接至 esm.sh 編譯伺服器，請檢查網路連線。</p>
+          <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; border: none; border-radius: 8px; color: white; cursor: pointer;">重試</button>
+        </div>
+      `;
+    };
+
+    document.head.appendChild(runScript);
+
+    // 備用方案：如果 10 秒後還在轉圈圈，顯示手動排除指南
+    setTimeout(() => {
+      const status = document.getElementById('status-text');
+      if (status && status.innerText.includes('準備中')) {
+        status.innerHTML = `
+          <div style="color: #64748b; font-size: 12px; margin-top: 10px;">
+            如果長時間沒有反應，請嘗試：<br/>
+            1. 按下 <b>Ctrl + F5</b> 強制重新整理<br/>
+            2. 檢查目前網址是否包含 <b>index.html</b>，請將其刪除。
+          </div>
+        `;
       }
-    }, true);
+    }, 8000);
   </script>
 <script type="module" src="/index.tsx"></script>
 </body>
