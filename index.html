@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +14,22 @@
       font-family: 'Inter', sans-serif;
       background-color: #0f172a;
       color: #f8fafc;
+      margin: 0;
+    }
+    #error-display {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.98);
+      color: #f87171;
+      padding: 40px;
+      z-index: 9999;
+      font-family: monospace;
+      white-space: pre-wrap;
+      overflow: auto;
     }
     .glass-morphism {
       background: rgba(30, 41, 59, 0.7);
@@ -21,12 +37,12 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
   </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom": "https://esm.sh/react-dom@^19.2.3",
-    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
@@ -36,10 +52,43 @@
 </head>
 <body>
   <div id="root"></div>
-  <!-- 使用 esm.sh/run 來即時轉譯並執行 index.tsx -->
+  <div id="error-display"></div>
+
   <script type="module">
+    // 錯誤捕捉輔助：如果載入失敗，直接在畫面上顯示原因
+    function showError(msg, details = '') {
+      const display = document.getElementById('error-display');
+      display.style.display = 'block';
+      display.innerHTML = `
+        <h1 style="color:white;margin-bottom:20px;font-size:24px">啟動失敗 (App Load Error)</h1>
+        <p style="margin-bottom:10px;font-weight:bold">原因：${msg}</p>
+        <div style="background:#000;padding:15px;border-radius:5px;font-size:12px;color:#94a3b8;border:1px solid #334155">
+          ${details}
+        </div>
+        <p style="margin-top:20px;font-size:14px;color:#64748b">
+          提示：請檢查檔案名稱大小寫是否完全一致，或嘗試強制重新整理頁面 (Ctrl+F5)。
+        </p>
+      `;
+    }
+
+    window.onerror = (msg, url, line, col, error) => {
+      showError(msg, `URL: ${url}\nLine: ${line}\nStack: ${error?.stack || 'N/A'}`);
+    };
+
     import { run } from 'https://esm.sh/run';
-    run('./index.tsx');
+    
+    // 核心修正：計算目前的絕對路徑 Base URL
+    // GitHub Pages 子路徑為 /DhowHomeWork26_01/，必須補齊才能正確找到 index.tsx
+    const path = window.location.pathname;
+    const directory = path.substring(0, path.lastIndexOf('/') + 1);
+    const baseUrl = window.location.origin + directory;
+    const entryPoint = baseUrl + 'index.tsx';
+    
+    console.log('GitHub Pages Context:', { baseUrl, entryPoint });
+
+    run(entryPoint).catch(err => {
+      showError('載入入口組件時出錯', err.stack || err.message);
+    });
   </script>
 <script type="module" src="/index.tsx"></script>
 </body>
