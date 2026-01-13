@@ -11,29 +11,23 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #0f172a;
+      background-color: #020617;
       color: #f8fafc;
       margin: 0;
-      overflow-x: hidden;
+      overflow: auto;
     }
     #root { min-height: 100vh; }
-    #error-display {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #0f172a;
-      color: #f87171;
-      padding: 2rem;
-      z-index: 9999;
-      overflow: auto;
-      font-family: monospace;
-    }
     .loader {
       width: 48px; height: 48px; border: 5px solid #1e293b;
       border-top-color: #3b82f6; border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .glass-morphism {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
   </style>
   <script type="importmap">
 {
@@ -52,33 +46,38 @@
   <div id="root">
     <div style="display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
       <div class="loader"></div>
-      <p style="color:#94a3b8; font-size:14px;">正在啟動 SnapStitch 引擎...</p>
+      <p style="color:#94a3b8; font-size:14px; letter-spacing: 0.05em;">SnapStitch 正在準備中...</p>
     </div>
   </div>
 
-  <div id="error-display"></div>
+  <script type="module">
+    /**
+     * GitHub Pages 子目錄修復邏輯
+     * 強制將入口點指向與當前 index.html 同目錄下的 index.tsx
+     */
+    try {
+      const entryUrl = new URL('./index.tsx', window.location.href).href;
+      console.log('正在從以下路徑載入入口點:', entryUrl);
 
-  <!-- 
-    esm.sh/run 會自動抓取當前目錄下的 index.tsx 並進行即時編譯。
-    這是最穩定的用法，不需要額外的 main 參數或手動導入。
-  -->
-  <script type="module" src="https://esm.sh/run"></script>
-
-  <script>
-    // 捕獲載入錯誤（例如 404）
-    window.addEventListener('error', (event) => {
-      const display = document.getElementById('error-display');
-      if (display && (event.target.src || event.message)) {
-        display.style.display = 'block';
-        const source = event.target.src || 'Runtime Error';
-        display.innerHTML = `
-          <h1 style="color:white;font-size:1.5rem;margin-bottom:1rem;">應用程式載入失敗</h1>
-          <p><strong>錯誤來源:</strong> ${source}</p>
-          <p style="margin-top:1rem;">這通常是因為檔案尚未部署完成或路徑錯誤 (404)。</p>
-          <p style="color:#94a3b8;margin-top:0.5rem;">請嘗試：<br>1. 等待 1-2 分鐘讓 GitHub 更新。<br>2. 按下 <strong>Ctrl + F5</strong> 強制重新整理。</p>
+      const loader = document.createElement('script');
+      loader.type = 'module';
+      // 使用 esm.sh/run 進行 JSX/TSX 即時編譯並顯式指定 main 入口
+      loader.src = `https://esm.sh/run?main=${entryUrl}`;
+      
+      loader.onerror = () => {
+        document.getElementById('root').innerHTML = `
+          <div style="padding: 2rem; color: #f87171; text-align: center;">
+            <h1 style="font-size: 1.5rem; margin-bottom: 1rem;">引擎啟動失敗</h1>
+            <p>無法從 esm.sh 載入編譯器。這可能是暫時性的網路問題。</p>
+            <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border-radius: 0.5rem; border: none; cursor: pointer;">手動重新整理</button>
+          </div>
         `;
-      }
-    }, true);
+      };
+
+      document.body.appendChild(loader);
+    } catch (e) {
+      console.error('Loader script failed:', e);
+    }
   </script>
 <script type="module" src="/index.tsx"></script>
 </body>
