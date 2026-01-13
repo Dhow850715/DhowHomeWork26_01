@@ -17,34 +17,19 @@
       margin: 0;
       overflow-x: hidden;
     }
-    #root {
-      min-height: 100vh;
+    #root { min-height: 100vh; }
+    .loader {
+      width: 40px; height: 40px; border: 4px solid #3b82f6;
+      border-top-color: transparent; border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
-    #error-display {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.98);
-      color: #f87171;
-      padding: 40px;
-      z-index: 9999;
-      font-family: monospace;
-      white-space: pre-wrap;
-      overflow: auto;
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .glass-morphism {
       background: rgba(30, 41, 59, 0.7);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
   </style>
-  <!-- 
-    修正：只保留一組路徑。
-    移除帶有 ^19.2.3 的重複項，避免瀏覽器衝突。
-  -->
   <script type="importmap">
 {
   "imports": {
@@ -60,57 +45,27 @@
 </head>
 <body>
   <div id="root">
-    <!-- 初始載入動畫，避免空白 -->
     <div style="display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
-      <div style="width:40px; height:40px; border:4px solid #3b82f6; border-top-color:transparent; border-radius:50%; animation: spin 1s linear infinite;"></div>
-      <p style="color:#64748b; font-size:14px;">正在初始化應用程式...</p>
+      <div class="loader"></div>
+      <p style="color:#64748b; font-size:14px;">初始化中，請稍候...</p>
     </div>
   </div>
-  
-  <div id="error-display"></div>
 
-  <style>
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
-
-  <!-- 
-    修正：改回手動載入 index.tsx，這樣能更好地處理 GitHub Pages 的子目錄路徑。
-  -->
+  <!-- 使用 esm.sh/run 進行 JSX 即時編譯 -->
   <script type="module">
-    import run from 'https://esm.sh/run';
+    // 解決 GitHub Pages 子路徑問題
+    // 我們不直接在 script src 寫 esm.sh/run，而是手動載入它並指定入口點
+    const path = window.location.pathname;
+    const base = path.substring(0, path.lastIndexOf('/') + 1);
+    const entry = window.location.origin + base + 'index.tsx';
+    
+    console.log('App Entry Point:', entry);
 
-    // 捕捉所有未處理的錯誤
-    window.onerror = (msg, url, line, col, error) => {
-      showError(msg, `檔案: ${url}\n位置: ${line}:${col}\n堆疊: ${error?.stack || 'N/A'}`);
-    };
-
-    function showError(msg, details) {
-      const display = document.getElementById('error-display');
-      if (display) {
-        display.style.display = 'block';
-        display.innerHTML = `
-          <h1 style="color:white;margin-bottom:20px;font-size:24px">啟動出錯</h1>
-          <p style="margin-bottom:10px;font-weight:bold">${msg}</p>
-          <pre style="background:#000;padding:15px;border-radius:5px;font-size:12px;color:#94a3b8;border:1px solid #334155">${details}</pre>
-        `;
-      }
-    }
-
-    try {
-      // 取得目前的基礎路徑（例如 /DhowHomeWork26_01/）
-      const path = window.location.pathname;
-      const base = path.substring(0, path.lastIndexOf('/') + 1);
-      const entry = window.location.origin + base + 'index.tsx';
-      
-      console.log('載入入口點:', entry);
-      
-      // 執行載入器
-      run(entry).catch(err => {
-        showError('編譯 index.tsx 失敗', err.message);
-      });
-    } catch (e) {
-      showError('初始化載入器失敗', e.message);
-    }
+    // 透過動態建立 script 標籤來載入，並帶上 main 參數
+    const loader = document.createElement('script');
+    loader.type = 'module';
+    loader.src = `https://esm.sh/run?main=${entry}`;
+    document.body.appendChild(loader);
   </script>
 <script type="module" src="/index.tsx"></script>
 </body>
