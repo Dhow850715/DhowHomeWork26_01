@@ -1,5 +1,5 @@
 
-import { ImageItem, ProcessingOptions, LayoutType, ResultStats, ImageAnnotation } from '../types';
+import { ImageItem, ProcessingOptions, LayoutType, ResultStats, ImageAnnotation } from '../types.ts';
 
 const drawAnnotations = (ctx: CanvasRenderingContext2D, annotations: ImageAnnotation[], x: number, y: number, scale: number) => {
   annotations.forEach(ann => {
@@ -73,9 +73,9 @@ export const processImages = async (
     });
   });
 
-  const loadedImages = await Promise.all(loadPromises);
+  const finalImages = await Promise.all(loadPromises);
 
-  loadedImages.forEach((img, index) => {
+  finalImages.forEach((img, index) => {
     const col = index % columns;
     const row = Math.floor(index / columns);
 
@@ -94,7 +94,6 @@ export const processImages = async (
     ctx.clip();
     ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
     
-    // Draw annotations on this specific image cell
     const annotations = items[index].annotations;
     if (annotations && annotations.length > 0) {
        drawAnnotations(ctx, annotations, drawX, drawY, ratio);

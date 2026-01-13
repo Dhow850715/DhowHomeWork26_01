@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ImageItem } from '../types';
+import { ImageItem } from '../types.ts';
 
 interface ImageListProps {
   images: ImageItem[];
