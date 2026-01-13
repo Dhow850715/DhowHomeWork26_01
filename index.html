@@ -54,41 +54,32 @@
   <div id="root"></div>
   <div id="error-display"></div>
 
+  <!-- 
+    修正：改用自動載入模式。
+    esm.sh/run 當作 script 載入時，會自動尋找 index.tsx 並處理所有路徑。
+  -->
+  <script type="module" src="https://esm.sh/run"></script>
+
   <script type="module">
-    // 錯誤捕捉輔助：如果載入失敗，直接在畫面上顯示原因
-    function showError(msg, details = '') {
-      const display = document.getElementById('error-display');
-      display.style.display = 'block';
-      display.innerHTML = `
-        <h1 style="color:white;margin-bottom:20px;font-size:24px">啟動失敗 (App Load Error)</h1>
-        <p style="margin-bottom:10px;font-weight:bold">原因：${msg}</p>
-        <div style="background:#000;padding:15px;border-radius:5px;font-size:12px;color:#94a3b8;border:1px solid #334155">
-          ${details}
-        </div>
-        <p style="margin-top:20px;font-size:14px;color:#64748b">
-          提示：請檢查檔案名稱大小寫是否完全一致，或嘗試強制重新整理頁面 (Ctrl+F5)。
-        </p>
-      `;
-    }
-
+    // 捕捉轉譯或執行時期的錯誤
     window.onerror = (msg, url, line, col, error) => {
-      showError(msg, `URL: ${url}\nLine: ${line}\nStack: ${error?.stack || 'N/A'}`);
+      const display = document.getElementById('error-display');
+      if (display) {
+        display.style.display = 'block';
+        display.innerHTML = `
+          <h1 style="color:white;margin-bottom:20px;font-size:24px">執行錯誤 (Runtime Error)</h1>
+          <p style="margin-bottom:10px;font-weight:bold">原因：${msg}</p>
+          <div style="background:#000;padding:15px;border-radius:5px;font-size:12px;color:#94a3b8;border:1px solid #334155">
+            檔案: ${url}<br>
+            位置: 行 ${line}, 列 ${col}<br><br>
+            堆疊:<br>${error?.stack || 'N/A'}
+          </div>
+          <p style="margin-top:20px;font-size:14px;color:#64748b">
+            提示：請確保所有 .tsx 和 .ts 檔案皆已上傳至 GitHub 倉庫的根目錄。
+          </p>
+        `;
+      }
     };
-
-    import { run } from 'https://esm.sh/run';
-    
-    // 核心修正：計算目前的絕對路徑 Base URL
-    // GitHub Pages 子路徑為 /DhowHomeWork26_01/，必須補齊才能正確找到 index.tsx
-    const path = window.location.pathname;
-    const directory = path.substring(0, path.lastIndexOf('/') + 1);
-    const baseUrl = window.location.origin + directory;
-    const entryPoint = baseUrl + 'index.tsx';
-    
-    console.log('GitHub Pages Context:', { baseUrl, entryPoint });
-
-    run(entryPoint).catch(err => {
-      showError('載入入口組件時出錯', err.stack || err.message);
-    });
   </script>
 <script type="module" src="/index.tsx"></script>
 </body>
