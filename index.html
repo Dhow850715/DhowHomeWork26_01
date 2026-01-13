@@ -15,6 +15,10 @@
       background-color: #0f172a;
       color: #f8fafc;
       margin: 0;
+      overflow-x: hidden;
+    }
+    #root {
+      min-height: 100vh;
     }
     #error-display {
       display: none;
@@ -37,6 +41,10 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
   </style>
+  <!-- 
+    修正：只保留一組路徑。
+    移除帶有 ^19.2.3 的重複項，避免瀏覽器衝突。
+  -->
   <script type="importmap">
 {
   "imports": {
@@ -51,35 +59,58 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- 初始載入動畫，避免空白 -->
+    <div style="display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
+      <div style="width:40px; height:40px; border:4px solid #3b82f6; border-top-color:transparent; border-radius:50%; animation: spin 1s linear infinite;"></div>
+      <p style="color:#64748b; font-size:14px;">正在初始化應用程式...</p>
+    </div>
+  </div>
+  
   <div id="error-display"></div>
 
-  <!-- 
-    修正：改用自動載入模式。
-    esm.sh/run 當作 script 載入時，會自動尋找 index.tsx 並處理所有路徑。
-  -->
-  <script type="module" src="https://esm.sh/run"></script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 
+  <!-- 
+    修正：改回手動載入 index.tsx，這樣能更好地處理 GitHub Pages 的子目錄路徑。
+  -->
   <script type="module">
-    // 捕捉轉譯或執行時期的錯誤
+    import run from 'https://esm.sh/run';
+
+    // 捕捉所有未處理的錯誤
     window.onerror = (msg, url, line, col, error) => {
+      showError(msg, `檔案: ${url}\n位置: ${line}:${col}\n堆疊: ${error?.stack || 'N/A'}`);
+    };
+
+    function showError(msg, details) {
       const display = document.getElementById('error-display');
       if (display) {
         display.style.display = 'block';
         display.innerHTML = `
-          <h1 style="color:white;margin-bottom:20px;font-size:24px">執行錯誤 (Runtime Error)</h1>
-          <p style="margin-bottom:10px;font-weight:bold">原因：${msg}</p>
-          <div style="background:#000;padding:15px;border-radius:5px;font-size:12px;color:#94a3b8;border:1px solid #334155">
-            檔案: ${url}<br>
-            位置: 行 ${line}, 列 ${col}<br><br>
-            堆疊:<br>${error?.stack || 'N/A'}
-          </div>
-          <p style="margin-top:20px;font-size:14px;color:#64748b">
-            提示：請確保所有 .tsx 和 .ts 檔案皆已上傳至 GitHub 倉庫的根目錄。
-          </p>
+          <h1 style="color:white;margin-bottom:20px;font-size:24px">啟動出錯</h1>
+          <p style="margin-bottom:10px;font-weight:bold">${msg}</p>
+          <pre style="background:#000;padding:15px;border-radius:5px;font-size:12px;color:#94a3b8;border:1px solid #334155">${details}</pre>
         `;
       }
-    };
+    }
+
+    try {
+      // 取得目前的基礎路徑（例如 /DhowHomeWork26_01/）
+      const path = window.location.pathname;
+      const base = path.substring(0, path.lastIndexOf('/') + 1);
+      const entry = window.location.origin + base + 'index.tsx';
+      
+      console.log('載入入口點:', entry);
+      
+      // 執行載入器
+      run(entry).catch(err => {
+        showError('編譯 index.tsx 失敗', err.message);
+      });
+    } catch (e) {
+      showError('初始化載入器失敗', e.message);
+    }
   </script>
 <script type="module" src="/index.tsx"></script>
 </body>
